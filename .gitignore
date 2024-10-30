@@ -1,0 +1,5 @@
+redis
+mysqldata
+docker-compose.yaml
+.env
+go-server.exe
