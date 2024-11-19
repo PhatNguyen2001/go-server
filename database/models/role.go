@@ -5,5 +5,5 @@ type Role struct {
 	Name        string `json:"name"`
 	Setting     string `json:"setting"`
 	Description string `json:"password"`
-	*BaseModel
+	BaseModel
 }

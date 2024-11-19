@@ -51,6 +51,7 @@ func Auth(c *gin.Context) {
 		//find User
 		var user models.User
 		connection.DB.First(&user, "id=?", claims["id"])
+		connection.DB.Preload("Role").First(&user, "id = ?", claims["id"])
 
 		if user.Id == "" {
 			c.AbortWithStatus(http.StatusUnauthorized)

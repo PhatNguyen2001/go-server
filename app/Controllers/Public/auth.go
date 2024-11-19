@@ -1,6 +1,7 @@
 package public
 
 import (
+	"fmt"
 	helper "go-server/Utils"
 	"go-server/database/connection"
 	"go-server/database/models"
@@ -19,6 +20,8 @@ func Register(c *gin.Context) {
 		Password string
 		Phone    string
 		Email    string
+		Gender   string
+		Bod      string
 	}
 
 	if c.Bind(&body) != nil {
@@ -38,17 +41,29 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	customer := models.Customer{
+		Gender: body.Gender,
+		Bod:    body.Bod,
+		UserId: user.Id,
+	}
+	customerResult := connection.DB.Create(&customer)
+	if customerResult.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": "Failed to create customer",
+		})
+		return
+	}
+
+	connection.DB.Preload("User").First(&customer, "id = ?", customer.Id)
 	c.JSON(http.StatusOK, gin.H{
-		"user": user,
+		"customer": customer,
 	})
 }
 
 func Login(c *gin.Context) {
 	var body struct {
-		// Name     string
 		Password string
 		Phone    string
-		// Email    string
 	}
 
 	if c.Bind(&body) != nil {
@@ -61,6 +76,7 @@ func Login(c *gin.Context) {
 	var user models.User
 	connection.DB.First(&user, "phone=?", body.Phone)
 
+	fmt.Printf("User: %+v\n", user)
 	if user.Id == "" {
 		c.JSON(http.StatusNotFound, gin.H{
 			"err": "user not found!",
@@ -109,4 +125,13 @@ func Login(c *gin.Context) {
 		"token":         tokenString,
 		"refresh_token": refreshToken,
 	})
+}
+
+func Profile(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "User profile", "user": user})
 }

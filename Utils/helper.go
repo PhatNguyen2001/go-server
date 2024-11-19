@@ -14,8 +14,8 @@ func GenerateRefreshToken(userId string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	refreshToken, err := token.SignedString(os.Getenv("SECRET_KEY"))
+	secretKey := os.Getenv("SECRET_KEY")
+	refreshToken, err := token.SignedString([]byte(secretKey))
 
 	if err != nil {
 		return "", err

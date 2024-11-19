@@ -8,14 +8,13 @@ import (
 )
 
 type User struct {
-	// Id        string `gorm:"primaryKey" json:"id"`
-	Phone string `json:"phone"`
-	Email string `json:"email"`
-	// AvatarUrl string `json:"avatar_url"`
-	Password string `json:"password"`
-	RoleId   string `json:"role_id"`
-	Role     Role   `gorm:"foreignKey:RoleId"`
-	Name     string `json:"name"`
+	Phone    string    `json:"phone"`
+	Email    string    `json:"email"`
+	Password string    `json:"-"`
+	RoleId   string    `json:"role_id"`
+	Role     *Role     `gorm:"foreignKey:RoleId" json:"role,omitempty`
+	Name     string    `json:"name"`
+	Customer *Customer `gorm:"foreignKey:UserId" json:"customer,omitempty"`
 	BaseModel
 }
 
