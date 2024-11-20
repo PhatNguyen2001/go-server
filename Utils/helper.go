@@ -1,10 +1,13 @@
 package helper
 
 import (
+	"fmt"
+	"math/rand"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"gopkg.in/gomail.v2"
 )
 
 func GenerateRefreshToken(userId string) (string, error) {
@@ -22,4 +25,28 @@ func GenerateRefreshToken(userId string) (string, error) {
 	}
 
 	return refreshToken, nil
+}
+
+func GenerateTemporaryPassword(length int) string {
+	const characters = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnopqrstuvwxyz123456789"
+	rand.Seed(time.Now().UnixNano())
+	result := make([]byte, length)
+	for i := 0; i < length; i++ {
+		result[i] = characters[rand.Intn(len(characters))]
+	}
+	return string(result)
+}
+
+func SendResetEmail(email string, tempPassword string) error {
+	m := gomail.NewMessage()
+	m.SetHeader("From", os.Getenv("EMAIL"))                                              // Replace with your email
+	m.SetHeader("To", email)                                                             // Email recipient
+	m.SetHeader("Subject", "Password Reset Request")                                     // Email subject
+	m.SetBody("text/plain", fmt.Sprintf("Your temporary password is: %s", tempPassword)) // Email body
+
+	// SMTP Configuration
+	d := gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("EMAIL"), os.Getenv("PASSWORD"))
+
+	// Send email
+	return d.DialAndSend(m)
 }

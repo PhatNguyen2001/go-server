@@ -135,3 +135,46 @@ func Profile(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "User profile", "user": user})
 }
+
+func ForgotPassword(c *gin.Context) {
+	var body struct {
+		Phone string `json:"phone" binding:"required"`
+		Email string `json:"email" binding:"required"`
+	}
+
+	// Bind input
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid input",
+		})
+		return
+	}
+
+	// Find user by phone
+	var user models.User
+	if err := connection.DB.First(&user, "phone = ? AND email = ?", body.Phone, body.Email).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "User not found",
+		})
+		return
+	}
+
+	// Generate temporary password
+	tempPassword := helper.GenerateTemporaryPassword(8)
+
+	// Update user's password (hashed version for security)
+	user.Password = tempPassword
+	connection.DB.Save(&user)
+
+	// Send email with temporary password
+	if err := helper.SendResetEmail(user.Email, tempPassword); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to send email",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Temporary password sent to your email",
+	})
+}

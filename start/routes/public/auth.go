@@ -15,5 +15,6 @@ func InitAuthRoute(router *gin.RouterGroup) {
 		publicGroup.POST("/register", public.Register)
 		publicGroup.POST("/login", public.Login)
 		publicGroup.GET("/profile", middlewares.Auth, public.Profile)
+		publicGroup.POST("/forgot-password", public.ForgotPassword)
 	}
 }
